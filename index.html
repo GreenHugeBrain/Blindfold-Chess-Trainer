@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ბლაინდფოლდ ჭადრაკის თამაში</title>
+  <style>
+    body {
+      background: #2c3e50;
+      color: white;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #34495e;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    h1 {
+      color: #ecf0f1;
+      margin-bottom: 30px;
+      font-size: 28px;
+    }
+    
+    .board-container {
+      position: relative;
+      margin: 20px auto;
+      width: 400px;
+    }
+    
+    .coordinates {
+      position: absolute;
+      display: flex;
+      font-weight: bold;
+      color: #ecf0f1;
+    }
+    
+    .files {
+      bottom: -25px;
+      left: 20px;
+      width: 400px;
+      justify-content: space-around;
+    }
+    
+    .ranks {
+      top: 10px;
+      left: -25px;
+      height: 400px;
+      flex-direction: column-reverse;
+      justify-content: space-around;
+    }
+    
+    .board {
+      width: 400px;
+      height: 400px;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      margin: 0 auto;
+      border: 2px solid #ecf0f1;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    }
+    
+    .square {
+      width: 50px;
+      height: 50px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background-color 0.3s;
+      user-select: none;
+      position: relative;
+    }
+    
+    .light { background-color: #f0d9b5; }
+    .dark { background-color: #b58863; }
+    
+    .square:hover {
+      cursor: pointer;
+      opacity: 0.8;
+    }
+    
+    .highlighted {
+      box-shadow: inset 0 0 0 3px yellow;
+    }
+    
+    .piece-img {
+      width: 45px;
+      height: 45px;
+      position: relative;
+      z-index: 5;
+    }
+    
+    .controls {
+      margin: 20px auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    button:hover {
+      background-color: #2980b9;
+    }
+    
+    button:disabled {
+      background-color: #95a5a6;
+      cursor: not-allowed;
+    }
+    
+    .game-info {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #2c3e50;
+      border-radius: 5px;
+    }
+    
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      margin: 15px 0;
+    }
+    
+    .stat-box {
+      background-color: #2c3e50;
+      padding: 10px 20px;
+      border-radius: 5px;
+      text-align: center;
+    }
+    
+    input {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #bdc3c7;
+      width: 200px;
+      text-align: center;
+    }
+    
+    #question-box {
+      padding: 20px;
+      background-color: #2c3e50;
+      border-radius: 5px;
+      margin-top: 20px;
+      transition: all 0.3s;
+    }
+    
+    #result {
+      font-weight: bold;
+      margin: 10px 0;
+      height: 20px;
+    }
+    
+    .timer {
+      font-size: 20px;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    
+    .level-select {
+      margin: 15px 0;
+    }
+    
+    .level-btn {
+      background-color: #7f8c8d;
+      margin: 0 5px;
+      padding: 8px 15px;
+    }
+    
+    .level-btn.active {
+      background-color: #e74c3c;
+    }
+    
+    .popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    
+    .popup.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    
+    .popup-content {
+      background-color: #34495e;
+      padding: 30px;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 500px;
+      text-align: center;
+    }
+    
+    .progress-bar {
+      height: 10px;
+      background-color: #2c3e50;
+      border-radius: 5px;
+      margin: 20px 0;
+      overflow: hidden;
+    }
+    
+    .progress {
+      height: 100%;
+      background-color: #2ecc71;
+      width: 0%;
+      transition: width 0.5s;
+    }
+    
+    @media (max-width: 500px) {
+      .board {
+        width: 320px;
+        height: 320px;
+      }
+      
+      .square {
+        width: 40px;
+        height: 40px;
+      }
+      
+      .piece-img {
+        width: 35px;
+        height: 35px;
+      }
+      
+      .board-container {
+        width: 320px;
+      }
+      
+      .files {
+        width: 320px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>ბლაინდფოლდ ჭადრაკი - შენი მეხსიერების ტრენერი</h1>
+    
+    <div class="level-select">
+      <span>სირთულე: </span>
+      <button class="level-btn active" data-level="easy">მარტივი</button>
+      <button class="level-btn" data-level="medium">საშუალო</button>
+      <button class="level-btn" data-level="hard">რთული</button>
+    </div>
+    
+    <div class="stats">
+      <div class="stat-box">
+        <div>დრო</div>
+        <div class="timer" id="timer">10</div>
+      </div>
+      <div class="stat-box">
+        <div>ქულა</div>
+        <div id="score-display">0</div>
+      </div>
+    </div>
+    
+    <div class="board-container">
+      <div class="coordinates ranks">
+        <div>8</div>
+        <div>7</div>
+        <div>6</div>
+        <div>5</div>
+        <div>4</div>
+        <div>3</div>
+        <div>2</div>
+        <div>1</div>
+      </div>
+      <div class="board" id="board"></div>
+      <div class="coordinates files">
+        <div>a</div>
+        <div>b</div>
+        <div>c</div>
+        <div>d</div>
+        <div>e</div>
+        <div>f</div>
+        <div>g</div>
+        <div>h</div>
+      </div>
+    </div>
+    
+    <div id="question-box" style="display:none;">
+      <p id="question" style="font-size: 18px; margin-bottom: 15px;"></p>
+      <input type="text" id="answer" placeholder="შეიყვანეთ პასუხი">
+      <p id="result"></p>
+      <div class="progress-bar">
+        <div class="progress" id="progress-bar"></div>
+      </div>
+    </div>
+    
+    <div class="controls">
+      <button id="start-btn" onclick="startGame()">თამაშის დაწყება</button>
+    </div>
+  </div>
+  
+  <div class="popup" id="end-popup">
+    <div class="popup-content">
+      <h2>თამაში დასრულებულია!</h2>
+      <p id="final-score"></p>
+      <p id="feedback"></p>
+      <button onclick="closePopup()">კარგი</button>
+      <button onclick="closePopup(); startGame();">თავიდან ცდა</button>
+    </div>
+  </div>
+
+  <script>
+    // ცვლადები
+    const board = document.getElementById("board");
+    const squares = [];
+    const timerDisplay = document.getElementById("timer");
+    const progressBar = document.getElementById("progress-bar");
+    const levelButtons = document.querySelectorAll(".level-btn");
+    
+    // ჭადრაკის ფიგურების ლინკები
+    const pieceImages = {
+      white: {
+        king: "https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wk.png",
+        queen: "https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wq.png",
+        rook: "https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wr.png",
+        bishop: "https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wb.png",
+        knight: "https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wn.png",
+        pawn: "https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png"
+      },
+      black: {
+        king: "https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bk.png",
+        queen: "https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bq.png",
+        rook: "https://images.chesscomfiles.com/chess-themes/pieces/neo/150/br.png",
+        bishop: "https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bb.png",
+        knight: "https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bn.png",
+        pawn: "https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bp.png"
+      }
+    };
+    
+    // ფიგურების კოდები (გამოიყენება შედარებისთვის)
+    const pieceCodes = {
+      white: {
+        king: "wk", queen: "wq", rook: "wr", bishop: "wb", knight: "wn", pawn: "wp"
+      },
+      black: {
+        king: "bk", queen: "bq", rook: "br", bishop: "bb", knight: "bn", pawn: "bp"
+      }
+    };
+    
+    // ფიგურების სახელები ქართულად
+    const pieceNames = {
+      "wk": "თეთრი მეფე", "wq": "თეთრი დედოფალი", "wr": "თეთრი ეტლი", 
+      "wb": "თეთრი ლაზიერი", "wn": "თეთრი მხედარი", "wp": "თეთრი პაიკი",
+      "bk": "შავი მეფე", "bq": "შავი დედოფალი", "br": "შავი ეტლი", 
+      "bb": "შავი ლაზიერი", "bn": "შავი მხედარი", "bp": "შავი პაიკი"
+    };
+    
+    // ფიგურების კოდების შებრუნებული მიმართება
+    const pieceCodesByImage = {};
+    for (const color in pieceImages) {
+      for (const piece in pieceImages[color]) {
+        const imageUrl = pieceImages[color][piece];
+        const pieceCode = pieceCodes[color][piece];
+        pieceCodesByImage[imageUrl] = pieceCode;
+      }
+    }
+    
+    // თამაშის მდგომარეობები
+    let currentPosition = {};
+    let questions = [];
+    let currentQuestion = 0;
+    let score = 0;
+    let memorizationTime = 10; // 10 წამი საწყისი დასამახსოვრებლად
+    let timeRemaining = memorizationTime;
+    let timer;
+    let gameActive = false;
+    let currentDifficulty = "easy";
+    
+    // დაფის შექმნა
+    function createBoard() {
+      board.innerHTML = "";
+      for (let r = 8; r >= 1; r--) {
+        for (let c = 0; c < 8; c++) {
+          const square = document.createElement("div");
+          const isLight = (r + c) % 2 === 0;
+          square.className = `square ${isLight ? "light" : "dark"}`;
+          const file = "abcdefgh"[c];
+          const id = file + r;
+          square.id = id;
+          board.appendChild(square);
+          squares.push(id);
+        }
+      }
+    }
+    
+    // სირთულის დონეების შექმნა
+    function setDifficulty(level) {
+      levelButtons.forEach(btn => {
+        btn.classList.remove("active");
+        if (btn.dataset.level === level) {
+          btn.classList.add("active");
+        }
+      });
+      
+      currentDifficulty = level;
+      
+      switch (level) {
+        case "easy":
+          memorizationTime = 20;
+          numPieces = 5;
+          break;
+        case "medium":
+          memorizationTime = 15;
+          numPieces = 8;
+          break;
+        case "hard":
+          memorizationTime = 10;
+          numPieces = 12;
+          break;
+      }
+    }
+    
+    // ფიგურის გამოსახულების დამატება დაფაზე
+    function addPieceToSquare(squareId, pieceCode) {
+      const square = document.getElementById(squareId);
+      square.innerHTML = ""; // გასუფთავება წინასწარ
+      
+      let color, pieceName;
+      if (pieceCode[0] === 'w') {
+        color = 'white';
+        pieceName = pieceCode.substring(1);
+      } else {
+        color = 'black';
+        pieceName = pieceCode.substring(1);
+      }
+      
+      // გარდაქმნა კოდიდან ფიგურის სახელად
+      const pieceNameLookup = {
+        'k': 'king', 'q': 'queen', 'r': 'rook', 
+        'b': 'bishop', 'n': 'knight', 'p': 'pawn'
+      };
+      
+      const pieceType = pieceNameLookup[pieceName];
+      const imageUrl = pieceImages[color][pieceType];
+      
+      // ფიგურის გამოსახულების შექმნა
+      const pieceImg = document.createElement("img");
+      pieceImg.src = imageUrl;
+      pieceImg.className = "piece-img";
+      pieceImg.alt = pieceNames[pieceCode];
+      pieceImg.draggable = false;
+      
+      square.appendChild(pieceImg);
+    }
+    
+    // შემთხვევითი ფიგურების განლაგება
+    function placeRandomPieces() {
+      currentPosition = {};
+      const usedSquares = [];
+      
+      // სირთულის მიხედვით განვსაზღვროთ ფიგურების რაოდენობა
+      let numPieces;
+      switch (currentDifficulty) {
+        case "easy": numPieces = 5; break;
+        case "medium": numPieces = 8; break;
+        case "hard": numPieces = 12; break;
+        default: numPieces = 5;
+      }
+      
+      // ფიგურების კოდები ბრტყელ მასივში
+      const allPieceCodes = [
+        ...Object.values(pieceCodes.white),
+        ...Object.values(pieceCodes.black)
+      ];
+      
+      for (let i = 0; i < numPieces; i++) {
+        let sq;
+        do {
+          sq = squares[Math.floor(Math.random() * squares.length)];
+        } while (usedSquares.includes(sq));
+        usedSquares.push(sq);
+        
+        const pieceCode = allPieceCodes[Math.floor(Math.random() * allPieceCodes.length)];
+        currentPosition[sq] = pieceCode;
+        addPieceToSquare(sq, pieceCode);
+      }
+    }
+    
+    // ფიგურების დამალვა
+    function hidePieces() {
+      for (let sq of squares) {
+        document.getElementById(sq).innerHTML = "";
+      }
+    }
+    
+    // შეკითხვების გენერაცია
+    function generateQuestions() {
+      questions = [];
+      const positions = Object.entries(currentPosition);
+      
+      // შეკითხვა 1: რა იდგა X უჯრაზე?
+      for (let [sq, pieceCode] of positions) {
+        questions.push({
+          type: "square",
+          square: sq,
+          answer: pieceCode,
+          text: `რა ფიგურა იდგა ${sq} უჯრაზე?`
+        });
+      }
+      
+      // შეკითხვა 2: სად იდგა ესა თუ ის ფიგურა?
+      for (let [sq, pieceCode] of positions) {
+        questions.push({
+          type: "piece",
+          piece: pieceCode,
+          answer: sq,
+          text: `სად იდგა ${pieceNames[pieceCode]}?`
+        });
+      }
+      
+      shuffleArray(questions);
+    }
+    
+    // შეკითხვის ჩვენება
+    function showQuestion() {
+      if (currentQuestion >= questions.length) {
+        endGame();
+        return;
+      }
+      
+      const q = questions[currentQuestion];
+      document.getElementById("result").textContent = "";
+      document.getElementById("question").textContent = q.text;
+      document.getElementById("answer").value = "";
+      document.getElementById("answer").focus();
+      
+      // განახლება პროგრესის ზოლი
+      const progress = ((currentQuestion) / questions.length) * 100;
+      progressBar.style.width = `${progress}%`;
+    }
+    
+    // პასუხის შემოწმება
+    function submitAnswer() {
+      if (!gameActive) return;
+      
+      const userAnswer = document.getElementById("answer").value.trim().toLowerCase();
+      const q = questions[currentQuestion];
+      
+      let isCorrect = false;
+      
+      if (q.type === "square") {
+        // ფიგურის შემოწმება - მრავალი შესაძლო პასუხის ფორმატი
+        const correctPieceCode = q.answer;
+        
+        // განვსაზღვროთ სწორი პასუხების ვარიანტები
+        const correctAnswers = [];
+        
+        // დავამატოთ სრული სახელი
+        correctAnswers.push(pieceNames[correctPieceCode].toLowerCase());
+        
+        // დავამატოთ მოკლე კოდი (wk, bq, etc.)
+        correctAnswers.push(correctPieceCode.toLowerCase());
+        
+        // დავამატოთ ფიგურის ტიპი (king, queen, etc.)
+        const pieceColor = correctPieceCode[0] === 'w' ? 'თეთრი' : 'შავი';
+        const pieceTypeMap = {
+          'k': 'მეფე', 'q': 'დედოფალი', 'r': 'ეტლი',
+          'b': 'ლაზიერი', 'n': 'მხედარი', 'p': 'პაიკი'
+        };
+        const pieceType = pieceTypeMap[correctPieceCode[1]];
+        correctAnswers.push(pieceType.toLowerCase());
+        
+        // შევამოწმოთ პასუხი
+        isCorrect = correctAnswers.includes(userAnswer);
+      } else {
+        // უჯრის კოორდინატების შედარება
+        isCorrect = userAnswer === q.answer.toLowerCase();
+      }
+      
+      const resultEl = document.getElementById("result");
+      
+      if (isCorrect) {
+        score++;
+        document.getElementById("score-display").textContent = score;
+        resultEl.textContent = "✓ სწორია!";
+        resultEl.style.color = "#2ecc71";
+      } else {
+        const correctAnswer = q.type === "square" ? pieceNames[q.answer] : q.answer;
+        resultEl.textContent = `✗ არასწორია. სწორი პასუხი: ${correctAnswer}`;
+        resultEl.style.color = "#e74c3c";
+      }
+      
+      currentQuestion++;
+      setTimeout(showQuestion, 1500);
+    }
+    
+    // მასივის არევა
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+    
+    // დასამახსოვრებელი დროის ტაიმერი
+    function startMemorizationTimer() {
+      timeRemaining = memorizationTime;
+      timerDisplay.textContent = timeRemaining;
+      
+      timer = setInterval(() => {
+        timeRemaining--;
+        timerDisplay.textContent = timeRemaining;
+        
+        if (timeRemaining <= 0) {
+          clearInterval(timer);
+          hidePieces();
+          document.getElementById("question-box").style.display = "block";
+          showQuestion();
+        }
+      }, 1000);
+    }
+    
+    // თამაშის დაწყება
+    function startGame() {
+      // სათამაშო მდგომარეობის გადატვირთვა
+      document.getElementById("question-box").style.display = "none";
+      document.getElementById("answer").style.display = "inline";
+      document.getElementById("start-btn").disabled = true;
+      progressBar.style.width = "0%";
+      
+      score = 0;
+      document.getElementById("score-display").textContent = score;
+      currentQuestion = 0;
+      gameActive = true;
+      
+      // ფიგურების განლაგება
+      placeRandomPieces();
+      startMemorizationTimer();
+      generateQuestions();
+    }
+    
+    // თამაშის დასრულება
+    function endGame() {
+      gameActive = false;
+      document.getElementById("start-btn").disabled = false;
+      document.getElementById("question-box").style.display = "none";
+      
+      // შედეგების გამოჩენა
+      const finalScore = document.getElementById("final-score");
+      const feedback = document.getElementById("feedback");
+      const maxScore = questions.length;
+      const percentage = (score / maxScore) * 100;
+      
+      finalScore.textContent = `თქვენი ქულა: ${score} / ${maxScore} (${Math.round(percentage)}%)`;
+      
+      if (percentage >= 90) {
+        feedback.textContent = "შესანიშნავია! თქვენ გაქვთ საოცარი მეხსიერება!";
+      } else if (percentage >= 70) {
+        feedback.textContent = "ძალიან კარგი! ცოტა კიდევ ვარჯიში და შესანიშნავი იქნება!";
+      } else if (percentage >= 50) {
+        feedback.textContent = "კარგი შედეგია, განაგრძეთ ვარჯიში!";
+      } else {
+        feedback.textContent = "კიდევ სცადეთ, ვარჯიშით ნამდვილად გააუმჯობესებთ!";
+      }
+      
+      document.getElementById("end-popup").classList.add("active");
+    }
+    
+    // დიალოგის დახურვა
+    function closePopup() {
+      document.getElementById("end-popup").classList.remove("active"); 
+    }
+    
+    // Enter-ის ღილაკზე პასუხის გაგზავნა
+    document.getElementById("answer").addEventListener("keypress", function(event) {
+      if (event.key === "Enter") {
+        submitAnswer();
+      }
+    });
+    
+    // სირთულის დონის არჩევა
+    levelButtons.forEach(btn => {
+      btn.addEventListener("click", function() {
+        if (!gameActive) {
+          setDifficulty(this.dataset.level);
+        }
+      });
+    });
+    
+    // იმიჯების პრელოადი - გამოსახულებების წინასწარ ჩატვირთვა
+    function preloadImages() {
+      const imagePromises = [];
+      
+      for (const color in pieceImages) {
+        for (const piece in pieceImages[color]) {
+          const img = new Image();
+          img.src = pieceImages[color][piece];
+          imagePromises.push(new Promise((resolve) => {
+            img.onload = resolve;
+          }));
+        }
+      }
+      
+      return Promise.all(imagePromises);
+    }
+    
+    // თამაშის ინიციალიზაცია
+    createBoard();
+    setDifficulty("easy");
+    preloadImages().then(() => {
+      // გამოსახულებები ჩატვირთულია, თამაში მზადაა
+      document.getElementById("start-btn").disabled = false;
+    });
+  </script>
+</body>
+</html>
